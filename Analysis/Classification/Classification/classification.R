@@ -32,6 +32,7 @@ cAELab2lab <- function(lab){
 #------------------------#
 #--- Initial settings ---#
 #------------------------#
+alpha <- 0.05
 k.fold<-5
 svm.params <- list(gamma = c(1e-5, 5e-1), nu = c(1e-3,1e-1))
 iterations <- seq(1,10) #Iterations to use
@@ -77,12 +78,20 @@ LST.GPLVM.carrot <- list(X=carrots.GPLVM.X.raw[,carrots.GPLVM.selection],Y=carro
 LST.GPLVM.sugarB <- list(X=sugarB.GPLVM.X.raw[,sugarB.GPLVM.selection],Y=sugarB.GPLVM.Y,labels=sugarB.GPLVM.label, name="sugarB",model="GPLVM")
 LST.cAE.carrot <- list(X=carrots.cAE.X.raw[,carrots.cAE.selection],Y=carrots.cAE.Y,labels=carrots.cAE.label, name="Carrot",model="cAE")
 LST.cAE.sugarB <- list(X=sugarB.cAE.X.raw[,sugarB.cAE.selection],Y=sugarB.cAE.Y,labels=sugarB.cAE.label, name="sugarB",model="cAE")
-
+#Do feature selection if needed
+LST.GPLVM.carrot$activeDims <- FS.LR(data.structure = LST.GPLVM.carrot,train.indices = carrots.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
+LST.GPLVM.sugarB$activeDims <- FS.LR(data.structure = LST.GPLVM.sugarB,train.indices = sugarB.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
+LST.GPLVM.carrot$activeDims <- LST.GPLVM.carrot$activeDims[-1] #remove bias p value
+LST.GPLVM.sugarB$activeDims <- LST.GPLVM.sugarB$activeDims[-1] #remove bias p value
+#Create list
 LST <- list(LST.GPLVM.carrot,LST.GPLVM.sugarB,LST.cAE.carrot,LST.cAE.sugarB)
-#LST <- list(LST.cAE.carrot,LST.cAE.sugarB)
-
 for(LST.iterator in seq(1,length(LST))){#Loop over all defined models
   X.raw <- LST[[LST.iterator]]$X #Get the design data
+  #Apply feature selection if needed
+  if(!is.null(LST[[LST.iterator]]$activeDims)){
+    X.raw <- X.raw[,LST[[LST.iterator]]$activeDims]
+    cat("Apply feature selection\n")
+  }
   X <- scale(X.raw) #Scale the training data
   Y <- LST[[LST.iterator]]$Y #Get labels
   labs <- LST[[LST.iterator]]$labels #Get labels
@@ -119,4 +128,8 @@ for(LST.iterator in seq(1,length(LST))){#Loop over all defined models
   write.table(LST[[LST.iterator]]$ACC.memory,paste(LST[[LST.iterator]]$name,"_",LST[[LST.iterator]]$model,"_ACC.csv",sep = ""),row.names = F,col.names = F)
   write.table(LST[[LST.iterator]]$PROB.memory,paste(LST[[LST.iterator]]$name,"_",LST[[LST.iterator]]$model,"_PROB.csv",sep = ""),row.names = F,col.names = F)
   write.table(LST[[LST.iterator]]$LAB.memory,paste(LST[[LST.iterator]]$name,"_",LST[[LST.iterator]]$model,"_LAB.csv",sep = ""),row.names = F,col.names = F)
+  #The active dimensions
+  if(!is.null(LST[[LST.iterator]]$activeDims)){
+    write.table(LST[[LST.iterator]]$activeDims,paste(LST[[LST.iterator]]$name,"_",LST[[LST.iterator]]$model,"_activeDims.csv",sep = ""),row.names = F,col.names = F)
+  }
 }

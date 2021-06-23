@@ -119,3 +119,63 @@ ACC <- function(pred.labs, labs){
   acc <- sum(diag(acc.matrix))/sum(acc.matrix) #Get accuracy
   return(acc)
 }
+#LR based feature selection
+FS.LR <- function(data.structure,train.indices,iterations,k.fold,alpha){
+  X.raw <- data.structure$X #Get the design data
+  X <- scale(X.raw) #Scale the training data
+  Y <- data.structure$Y #Get labels
+  labs <- data.structure$labels #Get labels
+  #--- train indices already exist
+  pval.memory <- array(0,dim = c(1+ncol(X),k.fold,length(iterations)))
+  for(i in iterations){ #Do n iterations
+    index <- GPLVM.index(i = i,labels = labs,index.matrix = train.indices)
+    X.train <- X[index,] #Get shuffeld design data
+    Y.train <- Y[index] #Ge shuffled inidces
+    LR.result <- train.LR(X=X.train,Y=Y.train,k.fold=k.fold,iterations=1,svm.params=svm.params)
+    #--- Store result ---#
+    pval.memory[,,i] <- LR.result$p.vals
+  }#End iteration loop  
+  active.dimensions <- apply(pval.memory,1,function(x){return(mean(x))}) < alpha #Threshold using alpha
+  return(active.dimensions)
+}
+#LR train used for LR based feature selection
+train.LR <- function(X,Y,k.fold,iterations,svm.params){
+  #------------------------#
+  #--- Prepare training ---#
+  #------------------------#
+  p.val.memory <- c() #Memory for p values
+  for (ITER in seq(1,iterations)){
+    #cat("\t- Iteration ",ITER,"\n")
+    #cat("\t- Do sampling...\n")
+    index <- seq(1,nrow(X))#sample(seq(1,nrow(X)),replace = F) #Create random indices for experiment
+    #cat("\t- Create folds...\n")
+    folds <- split(index, ceiling(seq_along(index)/(length(index)/k.fold))) #Split indices for k folds
+    iteration.pval <- c() #Memory for p values
+    for(k in seq(1,k.fold)){#Do k fold stuff
+      #cat("\t\t- Fold",k,"\n")
+      #-----------------------#
+      #--- Create datasets ---#
+      #-----------------------#
+      X.test <- X[folds[[toString(k)]],] #Test data is simply the 'active' fold
+      Y.test <- Y[folds[[toString(k)]]] #... smae for labels
+      index.train <- unlist(lapply( #Get the training indices over all folds
+        seq(1,k.fold), 
+        function(x){
+          if(x!=k){
+            return(folds[[toString(x)]])  
+          }
+        }))#End create training indices
+      X.train <- X[index.train,] #Training data is all other folds
+      Y.train <- Y[index.train]  #... same for labels
+      DF.new.test <-  data.frame(Y.test,X.test) #Create new DF
+      colnames(DF.new.test) <- c("Y",unlist(lapply(seq(1,ncol(X.test)),function(x){return(paste("L",x,".1",sep = ""))})))
+      DF.data <- data.frame(Y.train,X.train) #Create a dataset of statistical test
+      colnames(DF.data) <- c("Y",unlist(lapply(seq(1,ncol(X.train)),function(x){return(paste("L",x,".1",sep = ""))})))
+      model.LR <- glm(Y~.,data = DF.data,family=binomial('logit'))
+      iteration.pval <- abind(iteration.pval,coef(summary(model.LR))[,'Pr(>|z|)'],along = 2)
+    }#End k loops
+    #--- Store data ---#
+    p.val.memory <- iteration.pval
+  }#End iteration loop
+  return(list(p.vals =p.val.memory))
+}#End train LR
