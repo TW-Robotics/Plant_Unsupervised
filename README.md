@@ -51,7 +51,7 @@ However, we can analyse the resons for CNN classification using LRP and [Sykacek
 
 In contrast to that, the B-GP-LVM as well as cAE features can be visualized before classification.
 
-![F_C_GP](results/first10_GPLVM_C.png)
-![F_C_cAE](results/first10_cAE_C.png)
-![F_S_GP](results/first10_GPLVM_S.png)
-![F_S_cAE](results/first10_cAE_S.png)
+![F_C_GP](results/Features_GPLVM_C.png)
+![F_C_cAE](results/Features_cAE_C.png)
+![F_S_GP](results/Features_GPLVM_S.png)
+![F_S_cAE](results/Features_cAE_S.png)
