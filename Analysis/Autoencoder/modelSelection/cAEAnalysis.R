@@ -7,6 +7,8 @@
 # (C) Wilfried Woeber 2021 <wilfried.woeber@technikum-wien.at>
 rm(list=ls())
 library(readr) #CSV file handling
+pdf("cAESelection.pdf",width=7, height=4)
+par(mfrow=c(1,2))
 #-----------------------#
 #--- Main parameters ---#
 #-----------------------#
@@ -56,17 +58,18 @@ for(POP in pops){#For each population
   }#End get best model for each code size
   #Plot stuff
   plot(mse.horizont.median,col = pop.metric.hyperparams[,2],pch=16, type='b', 
-       main = paste("Analysis for",POP), ylab = "RMSE", xlab = "Experiments") #Plot points
+       main = paste("Analysis for",POP), ylab = "RMSE", xlab = "Experiments",cex.lab=0.8,cex.axis=0.8) #Plot points
   points(best.model.memory$index,mse.horizont.median[best.model.memory$index],cex=2,lwd=2) #Mark best models
   index.best <- which.min(mse.horizont.median[best.model.memory$index])
   points(best.model.memory$index[index.best],mse.horizont.median[best.model.memory$index][index.best],cex=2,lwd=2,col='green') #Mark best model
   legend("topright",legend = c(unlist(lapply(code.size,
                                            function(x){return(paste("Code size:",toString(x)))})
                                     ),'Best Model (Code)','Best Model'), 
-         pch=c(rep(16,length(code.size)),1,1),cex=0.75, col = c(unique(pop.metric.hyperparams[,2]),'black','green')) #Plot legend
+         pch=c(rep(16,length(code.size)),1,1),cex=0.65, col = c(unique(pop.metric.hyperparams[,2]),'black','green'), bg='white') #Plot legend
   #--- Store results ---#
   DF.best.models <- rbind(DF.best.models,best.model.memory)
   cat("Best ",POP, " model:", best.model.memory$text[index.best],"\n")
   write.table(best.model.memory$text[index.best], paste("best_model_",POP,".csv",sep = ""),row.names = F,col.names = F,quote = F)
 }#End population loop
 write.table(DF.best.models$text, "bestModels.csv",row.names = F,col.names = F,quote = F)
+dev.off()

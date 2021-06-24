@@ -29,6 +29,10 @@ path_features = (   '../FeatureSelection/Carrot_GPLVM.csv', #Path to selection o
                     '../FeatureSelection/Carrot_cAE.csv', #Path to selection of cAE
                     '../FeatureSelection/SugarB_cAE.csv', #Path to selection of cAE
                 ) #Path to the selected featurer
+LR_features = ( '../Classification/Classification/Carrot_GPLVM_activeDims.csv', #Path for GPLVM carrots
+                '../Classification/Classification/sugarB_GPLVM_activeDims.csv', #Path for GPLVM sugar Bs
+                '', '' #No LR selection for cAE
+                ) #Path to LR based selected features
 model_name=('GPLVM_C','GPLVM_S','cAE_C','cAE_S')
 model_title=(   'B-GP-LVM Daucus carota',
                 'B-GP-LVM Beta vulgaris',
@@ -42,13 +46,31 @@ model_delimiter=(',',',',' ',' ')
 for i in range(0,len(path_pVals)): #Loop over all models
     pVal_path = path_pVals[i] #Get path to pvals
     features = np.loadtxt(path_features[i],dtype=int)
+    if(LR_features[i] != ''):
+        activeDims = np.array(())
+        with open(LR_features[i], mode="r") as f:
+            for line in f:
+                if line=="TRUE\n":
+                    activeDims = np.concatenate((activeDims,np.array((True)).reshape((1,))),axis=0)
+                elif line=="FALSE\n":
+                    activeDims = np.concatenate((activeDims,np.array((False)).reshape((1,))),axis=0)
+        if len(activeDims)!=len(features):
+            print("Check features and active dimensions")
+            sys.exit(-1)
+    else:
+        activeDims = ()
     print("Process %s"%pVal_path)
     #--- Load features ---#
     row_pvals = () #Memory for rows
     col_pvals = () #Memory for cols
-    for k in range(0,len(features)): #Load features
+    k=-1
+    for j in range(0,len(features)): #Load features
+        if(len(activeDims)!=0):#Check if LR feature selection is available
+            if(activeDims[j] == False): #Abort if dimension is deactivated
+                continue
+        k=k+1
         #--- Raw heatmap ---#
-        csv_HM=np.loadtxt(pVal_path+model_prefix[i]+str(k)+".csv",delimiter=model_delimiter[i]) #Load the p value
+        csv_HM=np.loadtxt(pVal_path+model_prefix[i]+str(features[j])+".csv",delimiter=model_delimiter[i]) #Load the p value
         if( model_prefix[i] == ''): #Just transpose B-GP-LVM features
             csv_HM = np.transpose(csv_HM)
         csv_HM= (csv_HM-np.min(csv_HM))/(np.max(csv_HM)-np.min(csv_HM))*255.
@@ -56,7 +78,7 @@ for i in range(0,len(path_pVals)): #Loop over all models
         csv_HM=cv2.applyColorMap(255-csv_HM, cv2.COLORMAP_JET)
         csv_HM=cv2.copyMakeBorder(csv_HM,2,0,2,2,cv2.BORDER_CONSTANT,value=[0,0,0])
         #--- The p val image ---#
-        csv_pval=np.loadtxt(pVal_path+"HM_"+str(k)+"_p.csv") #Load the p value
+        csv_pval=np.loadtxt(pVal_path+"HM_"+str(features[j])+"_p.csv") #Load the p value
         csv_pval= (csv_pval-np.min(csv_pval))/(np.max(csv_pval)-np.min(csv_pval))*255.
         csv_pval=csv_pval.astype(np.uint8)
         csv_pval=cv2.applyColorMap(255-csv_pval, cv2.COLORMAP_JET)
@@ -93,11 +115,19 @@ for i in range(0,len(path_pVals)): #Loop over all models
                                     (row_elements-k%row_elements-1)*csv_pval.shape[1],3 #Add missing cells
                             ),dtype=np.uint8)), axis=1)
         col_pvals=np.concatenate((col_pvals,last_row),axis=0)
+    #--- Add white border anyway ---#
+    #white_row= np.ones((csv_pval.shape[0],row_elements*csv_pval.shape[1],3),dtype=np.uint8)*255
+    #col_pvals=np.concatenate((col_pvals,white_row),axis=0)
     #--- Store image ---#
+    #fig=plt.figure()
+    #fig.set_figheight(8)
+    #fig.set_figwidth(11)
     plt.imshow(col_pvals)
+    plt.title(model_title[i])
     plt.axis('off')
     plt.savefig("Features_"+model_name[i]+".png",bbox_inches = 'tight',pad_inches = 0)
     plt.savefig("Features_"+model_name[i]+".pdf",bbox_inches = 'tight',pad_inches = 0)
+    #plt.savefig("Features_"+model_name[i]+".pdf",pad_inches = 0)
     plt.close()
 #End loop range over models
 #We are done
