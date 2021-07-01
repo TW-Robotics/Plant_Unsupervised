@@ -5,6 +5,7 @@
 library(e1071) #SVM implementation
 library(rBayesianOptimization) #For global SVM optimization
 library(abind) #For 3D data binding
+library(pspearman) #For spearman rank test
 #Get labels from the strings
 getLabel.onehot <- function(label,classes){
   one.hot.labels <- c() #Memory for labels
@@ -179,3 +180,14 @@ train.LR <- function(X,Y,k.fold,iterations,svm.params){
   }#End iteration loop
   return(list(p.vals =p.val.memory))
 }#End train LR
+#Spearman Test
+sp.test <- function(data.structure,alpha){
+  activeDims <- c()
+  for(k in seq(1,ncol(data.structure$X))){
+    Y <- data.structure$Y
+    X <- data.structure$X[,k]
+    sp.test <- spearman.test(X,Y)
+    activeDims <- c(activeDims,sp.test$p.value<alpha)
+  }
+  return(activeDims)
+}

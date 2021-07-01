@@ -32,7 +32,7 @@ cAELab2lab <- function(lab){
 #------------------------#
 #--- Initial settings ---#
 #------------------------#
-alpha <- 0.05
+alpha <- 0.1
 k.fold<-5
 svm.params <- list(gamma = c(1e-5, 5e-1), nu = c(1e-3,1e-1))
 iterations <- seq(1,10) #Iterations to use
@@ -79,10 +79,15 @@ LST.GPLVM.sugarB <- list(X=sugarB.GPLVM.X.raw[,sugarB.GPLVM.selection],Y=sugarB.
 LST.cAE.carrot <- list(X=carrots.cAE.X.raw[,carrots.cAE.selection],Y=carrots.cAE.Y,labels=carrots.cAE.label, name="Carrot",model="cAE")
 LST.cAE.sugarB <- list(X=sugarB.cAE.X.raw[,sugarB.cAE.selection],Y=sugarB.cAE.Y,labels=sugarB.cAE.label, name="sugarB",model="cAE")
 #Do feature selection if needed
-LST.GPLVM.carrot$activeDims <- FS.LR(data.structure = LST.GPLVM.carrot,train.indices = carrots.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
-LST.GPLVM.sugarB$activeDims <- FS.LR(data.structure = LST.GPLVM.sugarB,train.indices = sugarB.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
-LST.GPLVM.carrot$activeDims <- LST.GPLVM.carrot$activeDims[-1] #remove bias p value
-LST.GPLVM.sugarB$activeDims <- LST.GPLVM.sugarB$activeDims[-1] #remove bias p value
+#LST.GPLVM.carrot$activeDims <- FS.LR(data.structure = LST.GPLVM.carrot,train.indices = carrots.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
+#LST.GPLVM.sugarB$activeDims <- FS.LR(data.structure = LST.GPLVM.sugarB,train.indices = sugarB.indices,iterations = iterations,k.fold = k.fold, alpha = alpha)
+#LST.GPLVM.carrot$activeDims <- LST.GPLVM.carrot$activeDims[-1] #remove bias p value
+#LST.GPLVM.sugarB$activeDims <- LST.GPLVM.sugarB$activeDims[-1] #remove bias p value
+#Apply spearmans test
+LST.GPLVM.carrot$activeDims <- sp.test(data.structure = LST.GPLVM.carrot,alpha = alpha)
+LST.GPLVM.sugarB$activeDims <- sp.test(data.structure = LST.GPLVM.sugarB,alpha = alpha)
+LST.cAE.carrot$activeDims <- sp.test(data.structure = LST.cAE.carrot,alpha = alpha)
+LST.cAE.sugarB$activeDims <- sp.test(data.structure = LST.cAE.sugarB,alpha = alpha)
 #Create list
 LST <- list(LST.GPLVM.carrot,LST.GPLVM.sugarB,LST.cAE.carrot,LST.cAE.sugarB)
 for(LST.iterator in seq(1,length(LST))){#Loop over all defined models
