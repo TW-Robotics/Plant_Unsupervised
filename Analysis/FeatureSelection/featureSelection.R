@@ -6,7 +6,9 @@
 # (C) Wilfried Woeber 2021 <wilfried.woeber@technikum-wien.at>
 rm(list=ls())
 library(readr) #CSV file handling
-pdf("RelevanceAnalysis.pdf",width=7, height=4)
+library(extrafont)
+loadfonts()
+pdf("RelevanceAnalysis.pdf",width=7, height=4,family = "Palatino")
 par(mfrow=c(1,2))
 ARD.GPLVM.carrots <- suppressMessages(as.matrix(read_csv("../../GPLVM/Carrots/optModel_bgp_ARDValues.csv", col_names = FALSE)))
 ARD.GPLVM.sugarB <- suppressMessages(as.matrix(read_csv("../../GPLVM/SugarB/optModel_bgp_ARDValues.csv", col_names = FALSE)))
@@ -18,7 +20,7 @@ REL.diff.carrot.TH <- which(REL.diff.carrot>median(REL.diff.carrot))[2] #Get fir
 #plot(REL.diff.carrot,type='l')
 #lines(c(1,150),c(median(REL.diff.carrot),median(REL.diff.carrot)),col='red')
 #lines(c(REL.diff.carrot.TH,REL.diff.carrot.TH),c(-1,1),col='red')
-plot(REL.carrot,type='l',xlab = "Latent Dimension", ylab = "Relevance", main="Daucus Carota Relevance Analysis", cex.lab=0.8)
+plot(REL.carrot,type='l',xlab = "Latent Dimension", ylab = "Relevance", main="Daucus carota", cex.lab=0.8)
 lines(c(REL.diff.carrot.TH,REL.diff.carrot.TH),c(-1,1),col='red')
 legend("topright",legend=c("Relevance","Threshold"),lty=1, col=c('black','red'),cex=0.8)
 #SugarB
@@ -28,7 +30,7 @@ REL.diff.sugarB.TH <- which(REL.diff.sugarB>median(REL.diff.sugarB))[1] #Get fir
 #plot(REL.diff.sugarB,type='l')
 #lines(c(1,150),c(median(REL.diff.sugarB),median(REL.diff.sugarB)),col='red')
 #lines(c(REL.diff.sugarB.TH,REL.diff.sugarB.TH),c(-1,1),col='red')
-plot(REL.sugarB,type='l',xlab = "Latent Dimension", ylab = "Relevance", main="Beta Vulgaris Relevance Analysis", cex.lab=0.8)
+plot(REL.sugarB,type='l',xlab = "Latent Dimension", ylab = "Relevance", main="Beta vulgaris", cex.lab=0.8)
 lines(c(REL.diff.sugarB.TH,REL.diff.sugarB.TH),c(-1,1),col='red')
 legend("topright",legend=c("Relevance","Threshold"),lty=1, col=c('black','red'),cex=0.8)
 #---------------------#
