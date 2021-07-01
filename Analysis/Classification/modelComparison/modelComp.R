@@ -7,6 +7,7 @@
 # (C) Wilfried Woeber 2021 <wilfried.woeber@technikum-wien.at>
 rm(list=ls())
 library(readr) #CSV file handling
+library(extrafont)
 source("./metrics.R")
 iterations <- 10
 k_folds <- 5
@@ -85,24 +86,25 @@ LST.CNN.sugarB <- loadCNNdata(path = "../CNN/SugarB/",iterations = iterations,k.
 #--- Visualization of the results ---#
 #------------------------------------#
 # Accuracy of carrots
-pdf("ACC.pdf",width=7, height=4)
+loadfonts()
+pdf("ACC.pdf",width=7, height=4,family = "Palatino")
 par(mfrow=c(1,2))
 ACC.DF.carrots <- array(0,dim = c(iterations,3))
 ACC.DF.carrots[,1] <- LST.GPLVM.carrot$ACC
 ACC.DF.carrots[,2] <- LST.cAE.carrot$ACC
 ACC.DF.carrots[,3] <- LST.CNN.carrot$ACC*100
 colnames(ACC.DF.carrots) <- c("B-GP-LVM","cAE","CNN")
-boxplot(ACC.DF.carrots, xlab = "Model", ylab="Accuracy [%]", main="Daucus carota Accuracy", cex.axis=0.85)
+boxplot(ACC.DF.carrots, ylab="Accuracy [%]", main="Daucus carota Accuracy", cex.axis=0.85, ylim = c(85,100))
 # Accuracy of sugar Bs
 ACC.DF.sugarB <- array(0,dim = c(iterations,3))
 ACC.DF.sugarB[,1] <- LST.GPLVM.sugarB$ACC
 ACC.DF.sugarB[,2] <- LST.cAE.sugarB$ACC
 ACC.DF.sugarB[,3] <- LST.CNN.sugarB$ACC*100
 colnames(ACC.DF.sugarB) <- c("B-GP-LVM","cAE","CNN")
-boxplot(ACC.DF.sugarB, xlab = "Model", ylab="Accuracy [%]", main="Beta vulgaris Accuracy", cex.axis=0.85)
+boxplot(ACC.DF.sugarB, ylab="Accuracy [%]", main="Beta vulgaris Accuracy", cex.axis=0.85, ylim = c(85,100))
 dev.off()
 # Mutual information
-pdf("MI.pdf",width=7, height=4)
+pdf("MI.pdf",width=7, height=4,family = "Palatino")
 par(mfrow=c(1,2))
 # We need to initially load the true labels for the MI implementation
 GT.carrot.lab <- suppressMessages(as.matrix(read_table2("../indexCreation/indicesCarrots.csv", col_names = FALSE))) #Get img name
@@ -139,19 +141,19 @@ MI.DF.carrot[,1] <- MI.carrot.GPLVM
 MI.DF.carrot[,2] <- MI.carrot.cAE
 MI.DF.carrot[,3] <- MI.carrot.CNN
 colnames(MI.DF.carrot) <- c("B-GP-LVM","cAE","CNN")
-boxplot(MI.DF.carrot, xlab = "Model", ylab="MI [bit]", main="Daucus carota MI Comparison", cex.axis=0.85)
+boxplot(MI.DF.carrot, ylab="MI [bit]", main="Daucus carota MI Comparison", cex.axis=0.85, ylim = c(0,0.9))
 #SugarB
 MI.DF.sugarB <- array(0,dim = c(iterations,3))
 MI.DF.sugarB[,1] <- MI.sugarB.GPLVM
 MI.DF.sugarB[,2] <- MI.sugarB.cAE
 MI.DF.sugarB[,3] <- MI.sugarB.CNN
 colnames(MI.DF.sugarB) <- c("B-GP-LVM","cAE","CNN")
-boxplot(MI.DF.sugarB, xlab = "Model", ylab="MI [bit]", main="Beta vulgaris MI Comparison", cex.axis=0.85)
+boxplot(MI.DF.sugarB, ylab="MI [bit]", main="Beta vulgaris MI Comparison", cex.axis=0.85, ylim = c(0,0.9))
 dev.off()
 #---------------------------#
 #--- Do the McNemar test ---#
 #---------------------------#
-pdf("McN.pdf",width=7, height=4)
+pdf("McN.pdf",width=7, height=4,family = "Palatino")
 par(mfrow=c(1,2))
 CNN.bin.lab <- LST.CNN.carrot$PROB>0.5 #Get binary response
 LST.CNN.carrot$LAB <- t(apply(CNN.bin.lab,1,as.numeric)) #Convert to numerical values (e.g.: 0 and)
