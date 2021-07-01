@@ -7,9 +7,12 @@
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
+import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt #We aim to plot something...
 import cv2
-row_elements=10
+row_elements=7
+bias = 0 #Bias for mean values for boarder (visualization only)
+prop = fm.FontProperties(fname='../../data/fonts/Palatino Linotype.ttf')
 #-----------------------------#
 #--- Set parts to the data ---#
 #-----------------------------#
@@ -31,7 +34,8 @@ path_features = (   '../FeatureSelection/Carrot_GPLVM.csv', #Path to selection o
                 ) #Path to the selected featurer
 LR_features = ( '../Classification/Classification/Carrot_GPLVM_activeDims.csv', #Path for GPLVM carrots
                 '../Classification/Classification/sugarB_GPLVM_activeDims.csv', #Path for GPLVM sugar Bs
-                '', '' #No LR selection for cAE
+                '../Classification/Classification/Carrot_cAE_activeDims.csv', 
+                '../Classification/Classification/sugarB_cAE_activeDims.csv'
                 ) #Path to LR based selected features
 model_name=('GPLVM_C','GPLVM_S','cAE_C','cAE_S')
 model_title=(   'B-GP-LVM Daucus carota',
@@ -76,13 +80,24 @@ for i in range(0,len(path_pVals)): #Loop over all models
         csv_HM= (csv_HM-np.min(csv_HM))/(np.max(csv_HM)-np.min(csv_HM))*255.
         csv_HM=csv_HM.astype(np.uint8)
         csv_HM=cv2.applyColorMap(255-csv_HM, cv2.COLORMAP_JET)
+        csv_HM=cv2.copyMakeBorder(csv_HM,20,0,0,0,cv2.BORDER_CONSTANT,
+                value=(bias,bias,bias))
+                #value=(bias+np.min(csv_HM[:,:,0]),bias+np.min(csv_HM[:,:,1]),bias+np.min(csv_HM[:,:,2])))
+        cv2.putText(csv_HM, "F:"+str(j), (5,15), cv2.FONT_HERSHEY_PLAIN, 0.85, (255,255,255))
         csv_HM=cv2.copyMakeBorder(csv_HM,2,0,2,2,cv2.BORDER_CONSTANT,value=[0,0,0])
         #--- The p val image ---#
         csv_pval=np.loadtxt(pVal_path+"HM_"+str(features[j])+"_p.csv") #Load the p value
         csv_pval= (csv_pval-np.min(csv_pval))/(np.max(csv_pval)-np.min(csv_pval))*255.
         csv_pval=csv_pval.astype(np.uint8)
         csv_pval=cv2.applyColorMap(255-csv_pval, cv2.COLORMAP_JET)
+        csv_pval=cv2.copyMakeBorder(csv_pval,20,0,0,0,cv2.BORDER_CONSTANT,
+                value=(bias,bias,bias))
+                #value=(bias+np.min(csv_pval[:,:,0]),bias+np.min(csv_pval[:,:,1]),bias+np.min(csv_pval[:,:,2])))
+        cv2.putText(csv_pval, "pF:"+str(j), (5,10), cv2.FONT_HERSHEY_PLAIN, 0.85, (255,255,255))
         csv_pval=cv2.copyMakeBorder(csv_pval,2,2,2,2,cv2.BORDER_CONSTANT,value=[0,0,0])
+        #--- Add border and index ---#
+        #csv_HM = addBorder(csv_HM,1)
+        #csv_pval = addBorder(csv_pval,1)
         #--- Combine images ---#
         csv_pval=np.concatenate((csv_HM,csv_pval),axis=0)
         #--- Create image ---#
@@ -123,7 +138,7 @@ for i in range(0,len(path_pVals)): #Loop over all models
     #fig.set_figheight(8)
     #fig.set_figwidth(11)
     plt.imshow(col_pvals)
-    plt.title(model_title[i])
+    plt.title(model_title[i],fontproperties=prop)
     plt.axis('off')
     plt.savefig("Features_"+model_name[i]+".png",bbox_inches = 'tight',pad_inches = 0)
     plt.savefig("Features_"+model_name[i]+".pdf",bbox_inches = 'tight',pad_inches = 0)
