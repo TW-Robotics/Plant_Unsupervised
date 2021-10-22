@@ -63,7 +63,7 @@ if __name__ == "__main__":
     from bGPLVM import bGPLVM   #GPy wrapper
     #--- global infos ---#
     img_dim = (int(sys.argv[1]), int(sys.argv[2])) #(91,224)
-    k=1000			#Number of iterations
+    k=10000			#Number of iterations
     alpha = 0.001		#Alpha threshold value
     #-------------------------------#
     #--- Create summarized plots ---#
