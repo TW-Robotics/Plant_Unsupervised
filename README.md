@@ -8,6 +8,8 @@ We provide an installation script, which installs all needed Python libraries. N
 - Python 3.8
 - R 4.1.0
 
+If you are using our software, please cite [our work](https://www.mdpi.com/2223-7747/10/12/2674).
+
 # Installation
 
 Please use the bash script provided to install the used software. 
